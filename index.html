@@ -415,7 +415,7 @@ function makeCamera(i,x,y,angle){
 
 function placeCamerasAroundTargets(tgtList){
   const count=tgtList.length*2;
-  const R=POLY*0.35; // радиус кольца камер
+  const R=POLY*0.15; // радиус кольца камер
   return Array.from({length:count},(_, i)=>{
     const a=(i/count)*Math.PI*2;
     const x=POLY/2+Math.cos(a)*R;
