@@ -593,7 +593,7 @@ function updateAnti(){
         if(vdist(a.x,a.y,a.target.x,a.target.y)<INTERCEPT_R){
           explosions.push({x:a.target.x,y:a.target.y,t:1.0});
           a.target.alive=false;a.target.mode='intercepted';a.target.trail=[];
-          a.target=null;a.mode='return';return;
+          a.alive=false;return;
         }
       }
       if(a.mode==='lastknown'&&vdist(a.x,a.y,gx,gy)<30){
