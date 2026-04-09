@@ -409,32 +409,20 @@ function findClosestUnattackedTarget(d){
   });
   return best;
 }
+const CAM_ROT_SPEED=40*Math.PI/180; // 40 градусов в секунду
+
 function makeCamera(i,x,y,angle){
-  return{id:i,x,y,angle,detected:null,cooldown:0};
+  return{id:i,x,y,angle,baseAngle:angle,rotDir:1,detected:null,cooldown:0};
 }
 
 function placeCamerasAroundTargets(tgtList){
-  const cams=[];
-  const CAMS_PER_TARGET=2;
-  const SPREAD_R=280; // радиус расстановки камер вокруг цели
-
-  tgtList.forEach(t=>{
-    for(let k=0;k<CAMS_PER_TARGET;k++){
-      // Равномерно по кругу вокруг цели
-      const baseAngle=Math.atan2(t.y-POLY/2,t.x-POLY/2); // от центра наружу
-      const spread=(k-(CAMS_PER_TARGET-1)/2)*(Math.PI/2.5);
-      const camAngle=baseAngle+spread;
-      const cx=t.x+Math.cos(camAngle)*SPREAD_R;
-      const cy=t.y+Math.sin(camAngle)*SPREAD_R;
-      // Зажимаем в полигон
-      const px=Math.max(80,Math.min(POLY-80,cx));
-      const py=Math.max(80,Math.min(POLY-80,cy));
-      // Смотрит наружу от центра (к периметру)
-      const lookAngle=Math.atan2(py-POLY/2,px-POLY/2);
-      cams.push(makeCamera(cams.length,px,py,lookAngle));
-    }
+  return tgtList.map((t,i)=>{
+    // Ставим камеру рядом с целью, смотрит наружу от центра
+    const outAngle=Math.atan2(t.y-POLY/2,t.x-POLY/2);
+    const cx=Math.max(80,Math.min(POLY-80,t.x+Math.cos(outAngle)*120));
+    const cy=Math.max(80,Math.min(POLY-80,t.y+Math.sin(outAngle)*120));
+    return makeCamera(i,cx,cy,outAngle);
   });
-  return cams;
 }
 
 function makeAnti(id){
@@ -533,6 +521,10 @@ function updateCameras(){
   const camRange=gp('camrange');
   const delay=gp('adelay');
   cameras.forEach(c=>{
+    // Вращение: ±70° от базового угла
+    c.angle+=CAM_ROT_SPEED*c.rotDir*DT;
+    if(Math.abs(adiff(c.baseAngle,c.angle))>70*Math.PI/180)c.rotDir*=-1;
+
     if(c.cooldown>0){c.cooldown-=DT;c.detected=null;return;}
     c.detected=null;let best=null,bestDist=camRange;
     drones.forEach(d=>{
