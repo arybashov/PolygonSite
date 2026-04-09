@@ -814,8 +814,23 @@ function init(){
   camOffX=0;camOffY=0;camUserZoom=1.0;
   const nD=parseInt(gp('ndrones')),nA=parseInt(gp('nanti'));
   const spawns=Array.from({length:nD},spawnEdge);
-  const tgts=Array.from({length:nD},spawnTarget);
-  for(let i=0;i<nD;i++){targets.push(tgts[i]);drones.push(makeDrone(i,spawns[i],tgts[i],i));}
+  // Генерируем nD-1 случайных целей + база как одна из целей
+  const tgts=Array.from({length:nD-1},spawnTarget);
+  tgts.push({x:BASE_X,y:BASE_Y,hit:false});
+  tgts.forEach(t=>targets.push(t));
+
+  // Каждому дрону назначаем ближайшую ещё не назначенную цель
+  const assigned=new Set();
+  spawns.forEach((sp,i)=>{
+    let bestIdx=-1,bestDist=Infinity;
+    tgts.forEach((t,ti)=>{
+      if(assigned.has(ti))return;
+      const d=vdist(sp.x,sp.y,t.x,t.y);
+      if(d<bestDist){bestDist=d;bestIdx=ti;}
+    });
+    assigned.add(bestIdx);
+    drones.push(makeDrone(i,sp,tgts[bestIdx],bestIdx));
+  });
   cameras=placeCamerasAroundTargets(targets);
   for(let i=0;i<nA;i++)antidrones.push(makeAnti(i));
 }
