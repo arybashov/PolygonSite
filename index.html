@@ -409,10 +409,29 @@ function findClosestUnattackedTarget(d){
   });
   return best;
 }
-function makeCamera(i){
-  const a=rnd(0,Math.PI*2),r=rnd(80,200);
-  const x=POLY/2+Math.cos(a)*r,y=POLY/2+Math.sin(a)*r;
-  return{id:i,x,y,angle:Math.atan2(y-POLY/2,x-POLY/2),detected:null,cooldown:0};
+function makeCamera(i,x,y){
+  // угол смотрит к центру полигона
+  const angle=Math.atan2(POLY/2-y,POLY/2-x);
+  return{id:i,x,y,angle,detected:null,cooldown:0};
+}
+
+function placeCameras(count){
+  // равномерная сетка: cols x rows ≈ соотношение сторон 1:1
+  const cols=Math.round(Math.sqrt(count));
+  const rows=Math.ceil(count/cols);
+  const margin=POLY*0.12;
+  const stepX=(POLY-2*margin)/(cols-1||1);
+  const stepY=(POLY-2*margin)/(rows-1||1);
+  const cams=[];
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      if(cams.length>=count)break;
+      const x=margin+c*stepX;
+      const y=margin+r*stepY;
+      cams.push(makeCamera(cams.length,x,y));
+    }
+  }
+  return cams;
 }
 function makeAnti(id){
   return{id,x:BASE_X,y:BASE_Y,angle:0,speed:0,
@@ -450,7 +469,7 @@ function updateDrone(d){
   if(distToTarget<ATTACK_COMMIT_DIST){
     if(d.evading){d.evading=false;d.evadeWpt=null;d.predictPt=null;d.threatId=null;}
     d.tx=d.rtx;d.ty=d.rty;d.mode='approach';
-    if(distToTarget<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.mode='hit';return;}
+    if(distToTarget<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.trail=[];d.mode='hit';return;}
   } else {
     let threat=null;
     for(const a of antidrones){
@@ -478,7 +497,7 @@ function updateDrone(d){
       } else {
         d.mode='approach';
         const rdx=d.rtx-d.x,rdy=d.rty-d.y,rdist=vdist(d.x,d.y,d.rtx,d.rty);
-        if(rdist<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.mode='hit';return;}
+        if(rdist<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.trail=[];d.mode='hit';return;}
         const ar=Math.atan2(rdy,rdx),ld=Math.abs(adiff(d.angle,ar));
         const inDZ=rdist<dz&&ld>Math.PI/3;
         if(inDZ&&d.mode!=='bypass'){
@@ -494,7 +513,7 @@ function updateDrone(d){
         }
       }
     }
-    if(d.mode!=='evade'&&d.mode!=='reapproach'){if(vdist(d.x,d.y,d.rtx,d.rty)<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.mode='hit';return;}}
+    if(d.mode!=='evade'&&d.mode!=='reapproach'){if(vdist(d.x,d.y,d.rtx,d.rty)<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.trail=[];d.mode='hit';return;}}
   }
   const diff=adiff(d.angle,Math.atan2(d.ty-d.y,d.tx-d.x));
   d.angle+=Math.max(-maxT,Math.min(maxT,diff));
@@ -674,7 +693,7 @@ function draw(){
   });
 
   drones.forEach(d=>{
-    if(d.trail.length<2)return;
+    if(!d.alive||d.trail.length<2)return;
     for(let i=1;i<d.trail.length;i++){
       const s0=w2s(d.trail[i-1].x,d.trail[i-1].y),s1=w2s(d.trail[i].x,d.trail[i].y);
       const a=i/d.trail.length;
@@ -799,7 +818,7 @@ function init(){
   const spawns=Array.from({length:nD},spawnEdge);
   const tgts=Array.from({length:nD},spawnTarget);
   for(let i=0;i<nD;i++){targets.push(tgts[i]);drones.push(makeDrone(i,spawns[i],tgts[i],i));}
-  for(let i=0;i<CAM_COUNT;i++)cameras.push(makeCamera(i));
+  cameras=placeCameras(CAM_COUNT);
   for(let i=0;i<nA;i++)antidrones.push(makeAnti(i));
 }
 
