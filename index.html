@@ -409,30 +409,34 @@ function findClosestUnattackedTarget(d){
   });
   return best;
 }
-function makeCamera(i,x,y){
-  // угол смотрит к центру полигона
-  const angle=Math.atan2(POLY/2-y,POLY/2-x);
+function makeCamera(i,x,y,angle){
   return{id:i,x,y,angle,detected:null,cooldown:0};
 }
 
-function placeCameras(count){
-  // равномерная сетка: cols x rows ≈ соотношение сторон 1:1
-  const cols=Math.round(Math.sqrt(count));
-  const rows=Math.ceil(count/cols);
-  const margin=POLY*0.12;
-  const stepX=(POLY-2*margin)/(cols-1||1);
-  const stepY=(POLY-2*margin)/(rows-1||1);
+function placeCamerasAroundTargets(tgtList){
   const cams=[];
-  for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-      if(cams.length>=count)break;
-      const x=margin+c*stepX;
-      const y=margin+r*stepY;
-      cams.push(makeCamera(cams.length,x,y));
+  const CAMS_PER_TARGET=2;
+  const SPREAD_R=280; // радиус расстановки камер вокруг цели
+
+  tgtList.forEach(t=>{
+    for(let k=0;k<CAMS_PER_TARGET;k++){
+      // Равномерно по кругу вокруг цели
+      const baseAngle=Math.atan2(t.y-POLY/2,t.x-POLY/2); // от центра наружу
+      const spread=(k-(CAMS_PER_TARGET-1)/2)*(Math.PI/2.5);
+      const camAngle=baseAngle+spread;
+      const cx=t.x+Math.cos(camAngle)*SPREAD_R;
+      const cy=t.y+Math.sin(camAngle)*SPREAD_R;
+      // Зажимаем в полигон
+      const px=Math.max(80,Math.min(POLY-80,cx));
+      const py=Math.max(80,Math.min(POLY-80,cy));
+      // Смотрит наружу от центра (к периметру)
+      const lookAngle=Math.atan2(py-POLY/2,px-POLY/2);
+      cams.push(makeCamera(cams.length,px,py,lookAngle));
     }
-  }
+  });
   return cams;
 }
+
 function makeAnti(id){
   return{id,x:BASE_X,y:BASE_Y,angle:0,speed:0,
     target:null,lastKnownX:null,lastKnownY:null,
@@ -818,7 +822,7 @@ function init(){
   const spawns=Array.from({length:nD},spawnEdge);
   const tgts=Array.from({length:nD},spawnTarget);
   for(let i=0;i<nD;i++){targets.push(tgts[i]);drones.push(makeDrone(i,spawns[i],tgts[i],i));}
-  cameras=placeCameras(CAM_COUNT);
+  cameras=placeCamerasAroundTargets(targets);
   for(let i=0;i<nA;i++)antidrones.push(makeAnti(i));
 }
 
