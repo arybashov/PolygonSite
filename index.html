@@ -591,9 +591,9 @@ function updateAnti(){
       else{a.mode='return';return;}
       if(a.target&&a.target.alive&&a.target.mode!=='hit'&&a.target.mode!=='intercepted'){
         if(vdist(a.x,a.y,a.target.x,a.target.y)<INTERCEPT_R){
-          explosions.push({x:a.x,y:a.y,t:1.0});
+          explosions.push({x:a.target.x,y:a.target.y,t:1.0});
           a.target.alive=false;a.target.mode='intercepted';a.target.trail=[];
-          a.alive=false;return;
+          a.target=null;a.mode='return';return;
         }
       }
       if(a.mode==='lastknown'&&vdist(a.x,a.y,gx,gy)<30){
