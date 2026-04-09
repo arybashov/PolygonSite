@@ -431,8 +431,11 @@ function placeCamerasAroundTargets(tgtList){
   return cams;
 }
 
-function makeAnti(id){
-  return{id,x:BASE_X,y:BASE_Y,angle:0,speed:0,
+function makeAnti(id,total){
+  // Разносим по кругу вокруг базы
+  const a=total>1?(id/total)*Math.PI*2:0;
+  const r=total>1?40:0;
+  return{id,x:BASE_X+Math.cos(a)*r,y:BASE_Y+Math.sin(a)*r,angle:0,speed:0,
     target:null,lastKnownX:null,lastKnownY:null,
     mode:'base',trail:[],alive:true,
     launchDelay:0,pendingTarget:null};
@@ -629,9 +632,11 @@ function updateAnti(){
       a.speed=lerp(a.speed,aSpeedMS,DT/0.3);
       a.x+=Math.cos(a.angle)*a.speed*DT*MS;a.y+=Math.sin(a.angle)*a.speed*DT*MS;
     } else if(a.mode==='return'){
-      const dd=vdist(a.x,a.y,BASE_X,BASE_Y);
-      if(dd<15){a.x=BASE_X;a.y=BASE_Y;a.mode='base';a.speed=0;a.trail=[];return;}
-      const diff=adiff(a.angle,Math.atan2(BASE_Y-a.y,BASE_X-a.x));
+      const homeX=BASE_X+Math.cos(a.id/antidrones.length*Math.PI*2)*40;
+      const homeY=BASE_Y+Math.sin(a.id/antidrones.length*Math.PI*2)*40;
+      const dd=vdist(a.x,a.y,homeX,homeY);
+      if(dd<15){a.x=homeX;a.y=homeY;a.mode='base';a.speed=0;a.trail=[];return;}
+      const diff=adiff(a.angle,Math.atan2(homeY-a.y,homeX-a.x));
       a.angle+=Math.max(-maxT,Math.min(maxT,diff));
       a.speed=lerp(a.speed,aSpeedMS*0.7,DT/0.3);
       a.x+=Math.cos(a.angle)*a.speed*DT*MS;a.y+=Math.sin(a.angle)*a.speed*DT*MS;
@@ -768,13 +773,13 @@ function draw(){
   // антидроны на базе с таймером
   antidrones.forEach(a=>{
     if(!a.alive||a.mode!=='waiting')return;
-    const ds=w2s(BASE_X,BASE_Y);
-    const frac=a.launchDelay/gp('adelay');
+    const ds=w2s(a.x,a.y);
+    const frac=a.launchDelay/Math.max(1,gp('adelay'));
     ctx.beginPath();
     ctx.arc(ds.x,ds.y,12,(-Math.PI/2),(Math.PI*2*frac)-Math.PI/2);
     ctx.strokeStyle='rgba(232,168,48,0.7)';ctx.lineWidth=2;ctx.stroke();
     ctx.fillStyle='rgba(232,168,48,0.8)';ctx.font='9px "Share Tech Mono"';
-    ctx.fillText(`A${a.id+1}:${Math.ceil(a.launchDelay)}s`,ds.x+16,ds.y+(a.id-antidrones.length/2)*14);
+    ctx.fillText(`A${a.id+1}:${Math.ceil(a.launchDelay)}s`,ds.x+16,ds.y);
   });
 
   const aRange=gp('arange');
@@ -838,7 +843,7 @@ function init(){
     drones.push(makeDrone(i,sp,tgts[bestIdx],bestIdx));
   });
   cameras=placeCamerasAroundTargets(targets);
-  for(let i=0;i<nA;i++)antidrones.push(makeAnti(i));
+  for(let i=0;i<nA;i++)antidrones.push(makeAnti(i,nA));
 }
 
 canvas.addEventListener('wheel',(e)=>{
