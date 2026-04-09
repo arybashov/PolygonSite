@@ -414,21 +414,14 @@ function makeCamera(i,x,y,angle){
 }
 
 function placeCamerasAroundTargets(tgtList){
-  // 2 камеры на цель: разнесены перпендикулярно направлению наружу,
-  // каждая смотрит в свой сектор (наружу ±45°)
-  const cams=[];
-  tgtList.forEach(t=>{
-    const out=Math.atan2(t.y-POLY/2,t.x-POLY/2); // направление от центра
-    const perp=out+Math.PI/2;
-    const R=180; // смещение от цели
-    for(const side of[-1,1]){
-      const cx=Math.max(80,Math.min(POLY-80,t.x+Math.cos(perp)*R*side));
-      const cy=Math.max(80,Math.min(POLY-80,t.y+Math.sin(perp)*R*side));
-      const lookAngle=out+side*Math.PI/4; // смотрит наружу ±45°
-      cams.push(makeCamera(cams.length,cx,cy,lookAngle));
-    }
+  const count=tgtList.length*2;
+  const R=POLY*0.35; // радиус кольца камер
+  return Array.from({length:count},(_, i)=>{
+    const a=(i/count)*Math.PI*2;
+    const x=POLY/2+Math.cos(a)*R;
+    const y=POLY/2+Math.sin(a)*R;
+    return makeCamera(i,x,y,a); // смотрит наружу
   });
-  return cams;
 }
 
 function makeAnti(id,total){
