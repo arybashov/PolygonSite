@@ -456,6 +456,12 @@ function computeEvadeWaypoint(d,threat){
 
 function updateDrone(d){
   if(!d.alive||d.mode==='hit'||d.mode==='intercepted')return;
+  // Если текущая цель уже поражена — найти ближайшую свободную
+  if(targets[d.targetIdx]&&targets[d.targetIdx].hit){
+    const ct=findClosestUnattackedTarget(d);
+    if(ct){d.targetIdx=ct.i;d.rtx=ct.t.x;d.rty=ct.t.y;d.tx=ct.t.x;d.ty=ct.t.y;d.mode='approach';}
+    else{d.alive=false;return;} // все цели поражены
+  }
   const cKMH=gp('dspeed'),mKMH=Math.min(cKMH*0.6,cKMH-10);
   const om=30*(1-(50-10)/190*0.5)*Math.PI/180,maxT=om*DT;
   const tr=(d.speed*MS)/om,dz=tr*1.5;
