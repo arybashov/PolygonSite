@@ -450,7 +450,7 @@ function updateDrone(d){
   if(distToTarget<ATTACK_COMMIT_DIST){
     if(d.evading){d.evading=false;d.evadeWpt=null;d.predictPt=null;d.threatId=null;}
     d.tx=d.rtx;d.ty=d.rty;d.mode='approach';
-    if(distToTarget<ARRIVAL_R){targets[d.targetIdx].hit=true;d.mode='hit';return;}
+    if(distToTarget<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.mode='hit';return;}
   } else {
     let threat=null;
     for(const a of antidrones){
@@ -478,7 +478,7 @@ function updateDrone(d){
       } else {
         d.mode='approach';
         const rdx=d.rtx-d.x,rdy=d.rty-d.y,rdist=vdist(d.x,d.y,d.rtx,d.rty);
-        if(rdist<ARRIVAL_R){targets[d.targetIdx].hit=true;d.mode='hit';return;}
+        if(rdist<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.mode='hit';return;}
         const ar=Math.atan2(rdy,rdx),ld=Math.abs(adiff(d.angle,ar));
         const inDZ=rdist<dz&&ld>Math.PI/3;
         if(inDZ&&d.mode!=='bypass'){
@@ -494,7 +494,7 @@ function updateDrone(d){
         }
       }
     }
-    if(d.mode!=='evade'&&d.mode!=='reapproach'){if(vdist(d.x,d.y,d.rtx,d.rty)<ARRIVAL_R){targets[d.targetIdx].hit=true;d.mode='hit';return;}}
+    if(d.mode!=='evade'&&d.mode!=='reapproach'){if(vdist(d.x,d.y,d.rtx,d.rty)<ARRIVAL_R){targets[d.targetIdx].hit=true;explosions.push({x:d.x,y:d.y,t:1.0});d.alive=false;d.mode='hit';return;}}
   }
   const diff=adiff(d.angle,Math.atan2(d.ty-d.y,d.tx-d.x));
   d.angle+=Math.max(-maxT,Math.min(maxT,diff));
@@ -697,14 +697,14 @@ function draw(){
   });
 
   targets.forEach((t,i)=>{
+    if(t.hit)return;
     const ts=w2s(t.x,t.y);
     const pulse=0.5+0.5*Math.sin(simTime*3+i);
-    ctx.strokeStyle=t.hit?'#e04b4b':`rgba(232,168,48,${0.35+pulse*0.3})`;
-    ctx.lineWidth=t.hit?2:1.5;
+    ctx.strokeStyle=`rgba(232,168,48,${0.35+pulse*0.3})`;
+    ctx.lineWidth=1.5;
     const sz=Math.max(4,7*z);
     ctx.beginPath();ctx.moveTo(ts.x-sz,ts.y);ctx.lineTo(ts.x+sz,ts.y);ctx.moveTo(ts.x,ts.y-sz);ctx.lineTo(ts.x,ts.y+sz);ctx.stroke();
     ctx.beginPath();ctx.arc(ts.x,ts.y,sz*0.55,0,Math.PI*2);ctx.stroke();
-    if(t.hit){ctx.fillStyle='rgba(224,75,74,0.9)';ctx.font='bold 14px sans-serif';ctx.fillText('✕',ts.x-5,ts.y+5);}
   });
 
   drones.forEach(d=>{
