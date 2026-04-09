@@ -570,11 +570,12 @@ function updateAnti(){
         a.launchDelay=0;
         if(a.pendingTarget&&a.pendingTarget.alive&&a.pendingTarget.mode!=='hit'&&a.pendingTarget.mode!=='intercepted'){
           a.target=a.pendingTarget;a.lastKnownX=a.target.x;a.lastKnownY=a.target.y;
+          a.angle=Math.atan2(a.target.y-a.y,a.target.x-a.x);
           a.mode='intercept';
         } else {
-          // цель уже мертва — ищем другую
           const newT=findNewTarget(a);
-          if(newT){a.target=newT;a.lastKnownX=newT.x;a.lastKnownY=newT.y;a.mode='intercept';}
+          if(newT){a.target=newT;a.lastKnownX=newT.x;a.lastKnownY=newT.y;
+            a.angle=Math.atan2(newT.y-a.y,newT.x-a.x);a.mode='intercept';}
           else{a.mode='base';}
         }
         a.pendingTarget=null;
