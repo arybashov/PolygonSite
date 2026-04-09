@@ -29,24 +29,23 @@
     background: var(--bg);
     color: var(--text);
     font-family: var(--sans);
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 24px 16px 40px;
+    padding: 16px 16px 16px;
     background-image:
       radial-gradient(ellipse 80% 40% at 50% 0%, rgba(78,203,113,0.04) 0%, transparent 70%);
   }
 
   header {
-    width: 100%;
-    max-width: 860px;
+    flex-shrink: 0;
     display: flex;
     align-items: baseline;
     gap: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 14px;
+    padding-bottom: 10px;
   }
 
   .logo {
@@ -76,11 +75,38 @@
   }
 
   .main {
-    width: 100%;
-    max-width: 860px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    gap: 14px;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    flex-shrink: 0;
+    width: 260px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
+    overflow-y: auto;
+  }
+
+  .canvas-area {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .canvas-area canvas {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: 1 / 1;
   }
 
   .panel {
@@ -100,21 +126,22 @@
   }
 
   .controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .ctrl {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   .ctrl label {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-dim);
-    min-width: 160px;
+    min-width: 0;
+    flex: 1;
     letter-spacing: 0.02em;
   }
 
@@ -215,7 +242,6 @@
 
   canvas {
     display: block;
-    width: 100%;
     border: 1px solid var(--border);
     border-radius: 4px;
     cursor: crosshair;
@@ -243,9 +269,10 @@
     flex-shrink: 0;
   }
 
-  @media (max-width: 600px) {
-    .controls { grid-template-columns: 1fr; }
-    .ctrl label { min-width: 120px; font-size: 11px; }
+  @media (max-width: 700px) {
+    body { height: auto; overflow: auto; }
+    .main { flex-direction: column; }
+    .sidebar { width: 100%; }
     h1 { font-size: 14px; }
     .subtitle { display: none; }
   }
@@ -261,47 +288,58 @@
 
 <div class="main">
 
-  <div class="panel">
-    <div class="panel-title">Параметры</div>
-    <div class="controls">
-      <div class="ctrl"><label>Скорость дрона (км/ч)</label><input type="range" min="80" max="300" value="200" step="10" id="dspeed"><span id="dspeedV">200</span></div>
-      <div class="ctrl"><label>Скорость антидрона (км/ч)</label><input type="range" min="150" max="500" value="300" step="10" id="aspeed"><span id="aspeedV">300</span></div>
-      <div class="ctrl"><label>Дальность камеры (м)</label><input type="range" min="300" max="1500" value="1000" step="50" id="camrange"><span id="camrangeV">1000</span></div>
-      <div class="ctrl"><label>Дальность антидрона (м)</label><input type="range" min="200" max="800" value="600" step="50" id="arange"><span id="arangeV">600</span></div>
-      <div class="ctrl"><label>Кол-во дронов</label><input type="range" min="1" max="15" value="5" step="1" id="ndrones"><span id="ndronesV">5</span></div>
-      <div class="ctrl"><label>Кол-во антидронов</label><input type="range" min="1" max="15" value="5" step="1" id="nanti"><span id="nantiV">5</span></div>
-      <div class="ctrl"><label>Задержка вылета (с)</label><input type="range" min="0" max="30" value="5" step="1" id="adelay"><span id="adelayV">5</span></div>
+  <div class="sidebar">
+
+    <div class="panel">
+      <div class="panel-title">Параметры</div>
+      <div class="controls">
+        <div class="ctrl"><label>Скорость дрона (км/ч)</label><input type="range" min="80" max="300" value="200" step="10" id="dspeed"><span id="dspeedV">200</span></div>
+        <div class="ctrl"><label>Скорость антидрона (км/ч)</label><input type="range" min="150" max="500" value="300" step="10" id="aspeed"><span id="aspeedV">300</span></div>
+        <div class="ctrl"><label>Дальность камеры (м)</label><input type="range" min="300" max="1500" value="1000" step="50" id="camrange"><span id="camrangeV">1000</span></div>
+        <div class="ctrl"><label>Дальность антидрона (м)</label><input type="range" min="200" max="800" value="600" step="50" id="arange"><span id="arangeV">600</span></div>
+        <div class="ctrl"><label>Кол-во дронов</label><input type="range" min="1" max="15" value="5" step="1" id="ndrones"><span id="ndronesV">5</span></div>
+        <div class="ctrl"><label>Кол-во антидронов</label><input type="range" min="1" max="15" value="5" step="1" id="nanti"><span id="nantiV">5</span></div>
+        <div class="ctrl"><label>Задержка вылета (с)</label><input type="range" min="0" max="30" value="5" step="1" id="adelay"><span id="adelayV">5</span></div>
+      </div>
     </div>
+
+    <div class="panel">
+      <div class="btn-row">
+        <button id="btnReset">↺ Новый сценарий</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Статистика</div>
+      <div class="stats-row" style="flex-direction:column;gap:6px;">
+        <div class="stat">Дроны: <b id="sDrones">5</b></div>
+        <div class="stat stat-hit">Поразили цель: <b id="sHits">0</b></div>
+        <div class="stat stat-int">Перехвачено: <b id="sInt">0</b></div>
+        <div class="stat stat-ad">Антидроны: <b id="sAD">0</b></div>
+        <div class="stat stat-time">Время: <b id="sTime">0</b>с</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Легенда</div>
+      <div class="legend" style="flex-direction:column;gap:7px;">
+        <div class="leg-item"><div class="leg-dot" style="background:#5ba3e8"></div>Дрон-камикадзе</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#e04b4b"></div>Антидрон</div>
+        <div class="leg-item"><div class="leg-dot" style="background:rgba(100,160,255,0.6)"></div>Камера обнаружения</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#e8a830"></div>Цель (объект атаки)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:rgba(94,185,235,0.6)"></div>Обходная точка</div>
+        <div class="leg-item"><div class="leg-dot" style="background:rgba(224,75,74,0.5)"></div>Предсказанный перехват</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:auto;">
+      <div class="hint" style="margin-left:0;">ЛКМ — цель · Колесико — зум · ПКМ+drag — панорама</div>
+    </div>
+
   </div>
 
-  <div class="panel">
-    <div class="btn-row">
-      <button id="btnReset">↺ Новый сценарий</button>
-      <div class="hint">ЛКМ — цель · Колесико — зум · ПКМ+drag — панорама</div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="stats-row">
-      <div class="stat">Дроны: <b id="sDrones">5</b></div>
-      <div class="stat stat-hit">Поразили цель: <b id="sHits">0</b></div>
-      <div class="stat stat-int">Перехвачено: <b id="sInt">0</b></div>
-      <div class="stat stat-ad">Антидроны: <b id="sAD">0</b></div>
-      <div class="stat stat-time">Время: <b id="sTime">0</b>с</div>
-    </div>
-  </div>
-
-  <canvas id="c"></canvas>
-
-  <div class="panel">
-    <div class="legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#5ba3e8"></div>Дрон-камикадзе</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#e04b4b"></div>Антидрон</div>
-      <div class="leg-item"><div class="leg-dot" style="background:rgba(100,160,255,0.6)"></div>Камера обнаружения</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#e8a830"></div>Цель (объект атаки)</div>
-      <div class="leg-item"><div class="leg-dot" style="background:rgba(94,185,235,0.6)"></div>Обходная точка</div>
-      <div class="leg-item"><div class="leg-dot" style="background:rgba(224,75,74,0.5)"></div>Предсказанный перехват</div>
-    </div>
+  <div class="canvas-area">
+    <canvas id="c"></canvas>
   </div>
 
 </div>
@@ -312,9 +350,10 @@ const ctx=canvas.getContext('2d');
 let W,H;
 
 function resize(){
-  const maxW=Math.min(828,window.innerWidth-32);
-  canvas.width=maxW;
-  canvas.height=Math.round(maxW*0.62);
+  const area=canvas.parentElement;
+  const size=Math.min(area.clientWidth,area.clientHeight)||600;
+  canvas.width=size;
+  canvas.height=size;
   W=canvas.width;H=canvas.height;
 }
 resize();
