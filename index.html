@@ -97,16 +97,11 @@
     min-width: 0;
     min-height: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .canvas-area canvas {
-    width: auto !important;
-    height: auto !important;
-    max-width: 100%;
-    max-height: 100%;
-    aspect-ratio: 1 / 1;
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .panel {
@@ -351,9 +346,10 @@ let W,H;
 
 function resize(){
   const area=canvas.parentElement;
-  const size=Math.min(area.clientWidth,area.clientHeight)||600;
-  canvas.width=size;
-  canvas.height=size;
+  const w=area.clientWidth||600;
+  const h=area.clientHeight||600;
+  canvas.width=w;
+  canvas.height=h;
   W=canvas.width;H=canvas.height;
 }
 resize();
@@ -361,7 +357,7 @@ window.addEventListener('resize',resize);
 
 const DT=1/60,POLY=2500,MS=1;
 const ARRIVAL_R=20,INTERCEPT_R=25;
-const CAM_FOV=50*Math.PI/180,ANTI_FOV=50*Math.PI/180,DRONE_FOV=50*Math.PI/180;
+const CAM_FOV=50*Math.PI/180,ANTI_FOV=50*Math.PI/180,DRONE_FOV=260*Math.PI/180;
 const DRONE_DETECT_R=400;
 const BASE_X=POLY/2,BASE_Y=POLY/2;
 const CAM_COUNT=10,CENTER_ZONE=800;
